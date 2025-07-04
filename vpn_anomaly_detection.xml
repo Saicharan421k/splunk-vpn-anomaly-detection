@@ -1,0 +1,110 @@
+{
+    "title": "VPN Anomaly Detection",
+    "description": "",
+    "inputs": {
+        "input_global_trp": {
+            "options": {
+                "defaultValue": "0,",
+                "token": "global_time"
+            },
+            "title": "Global Time Range",
+            "type": "input.timerange"
+        }
+    },
+    "defaults": {
+        "dataSources": {
+            "ds.search": {
+                "options": {
+                    "queryParameters": {
+                        "earliest": "$global_time.earliest$",
+                        "latest": "$global_time.latest$"
+                    }
+                }
+            }
+        }
+    },
+    "visualizations": {
+        "viz_3wuVnT3k": {
+            "dataSources": {
+                "primary": "ds_FyQkPgoI"
+            },
+            "options": {
+                "center": [
+                    23.241346102364957,
+                    46.75781249990018
+                ],
+                "zoom": 2
+            },
+            "type": "splunk.map"
+        },
+        "viz_oJpJ65JB": {
+            "dataSources": {
+                "primary": "ds_qXElern8"
+            },
+            "options": {},
+            "type": "splunk.table"
+        }
+    },
+    "dataSources": {
+        "ds_FyQkPgoI": {
+            "name": "Search_1",
+            "options": {
+                "query": "| inputlookup vpn_logins.csv | eval _time = strptime(timestamp, \"%Y-%m-%dT%H:%M:%SZ\") | iplocation src_ip | eval login_hour = tonumber(strftime(_time, \"%H\")) | where isnotnull(lat) AND isnotnull(lon) AND isnotnull(login_hour) | apply vpn_kmeans_model | sort - distance | head 100 | geostats count by Country"
+            },
+            "type": "ds.search"
+        },
+        "ds_qXElern8": {
+            "name": "Report - Top VPN Anomalies",
+            "options": {
+                "app": "search",
+                "ref": "Report - Top VPN Anomalies"
+            },
+            "type": "ds.savedSearch"
+        }
+    },
+    "layout": {
+        "globalInputs": [
+            "input_global_trp"
+        ],
+        "layoutDefinitions": {
+            "layout_1": {
+                "options": {
+                    "height": 960,
+                    "width": 1440
+                },
+                "structure": [
+                    {
+                        "item": "viz_3wuVnT3k",
+                        "position": {
+                            "h": 400,
+                            "w": 1440,
+                            "x": 0,
+                            "y": 0
+                        },
+                        "type": "block"
+                    },
+                    {
+                        "item": "viz_oJpJ65JB",
+                        "position": {
+                            "h": 400,
+                            "w": 1440,
+                            "x": 0,
+                            "y": 400
+                        },
+                        "type": "block"
+                    }
+                ],
+                "type": "grid"
+            }
+        },
+        "options": {},
+        "tabs": {
+            "items": [
+                {
+                    "label": "New tab",
+                    "layoutId": "layout_1"
+                }
+            ]
+        }
+    }
+}
